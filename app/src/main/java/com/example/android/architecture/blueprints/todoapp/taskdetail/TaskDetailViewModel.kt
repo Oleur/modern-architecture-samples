@@ -37,13 +37,10 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 /**
- * UiState for the Details screen.
+ * TODO: Define UiState for the Details screen.
  */
 data class TaskDetailUiState(
     val task: Task? = null,
-    val isLoading: Boolean = false,
-    val userMessage: Int? = null,
-    val isTaskDeleted: Boolean = false
 )
 
 /**
@@ -67,24 +64,12 @@ class TaskDetailViewModel @Inject constructor(
     val uiState: StateFlow<TaskDetailUiState> = combine(
         _userMessage, _isLoading, _isTaskDeleted, _taskAsync
     ) { userMessage, isLoading, isTaskDeleted, taskAsync ->
-        when (taskAsync) {
-            Async.Loading -> {
-                TaskDetailUiState(isLoading = true)
-            }
-            is Async.Success -> {
-                TaskDetailUiState(
-                    task = taskAsync.data,
-                    isLoading = isLoading,
-                    userMessage = userMessage,
-                    isTaskDeleted = isTaskDeleted
-                )
-            }
-        }
+        TODO("Handle success and loading for a dedicated task")
     }
         .stateIn(
             scope = viewModelScope,
             started = WhileUiSubscribed,
-            initialValue = TaskDetailUiState(isLoading = true)
+            initialValue = TaskDetailUiState()
         )
 
     fun deleteTask() = viewModelScope.launch {
