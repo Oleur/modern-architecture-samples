@@ -44,7 +44,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.ExperimentalLifecycleComposeApi
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.android.architecture.blueprints.todoapp.R
-import com.example.android.architecture.blueprints.todoapp.data.Task
+import com.example.android.architecture.blueprints.todoapp.domain.entity.TaskEntity
 import com.example.android.architecture.blueprints.todoapp.util.LoadingContent
 import com.example.android.architecture.blueprints.todoapp.util.TaskDetailTopAppBar
 import com.google.accompanist.appcompattheme.AppCompatTheme
@@ -104,7 +104,7 @@ fun TaskDetailScreen(
 private fun EditTaskContent(
     loading: Boolean,
     empty: Boolean,
-    task: Task?,
+    task: TaskEntity?,
     onTaskCheck: (Boolean) -> Unit,
     onRefresh: () -> Unit,
     modifier: Modifier = Modifier
@@ -139,7 +139,7 @@ private fun EditTaskContent(
                     Checkbox(task.isCompleted, onTaskCheck)
                     Column {
                         Text(text = task.title, style = MaterialTheme.typography.h6)
-                        Text(text = task.description, style = MaterialTheme.typography.body1)
+                        Text(text = task.desc, style = MaterialTheme.typography.body1)
                     }
                 }
             }
@@ -155,7 +155,12 @@ private fun EditTaskContentPreview() {
             EditTaskContent(
                 loading = false,
                 empty = false,
-                Task("Title", "Description", isCompleted = false),
+                task = TaskEntity(
+                    id = "id",
+                    title = "Title",
+                    desc = "Description",
+                    isCompleted = false
+                ),
                 onTaskCheck = { },
                 onRefresh = { }
             )
@@ -171,7 +176,7 @@ private fun EditTaskContentTaskCompletedPreview() {
             EditTaskContent(
                 loading = false,
                 empty = false,
-                Task("Title", "Description", isCompleted = true),
+                task = TaskEntity(id = "id", "Title", "Description", isCompleted = true),
                 onTaskCheck = { },
                 onRefresh = { }
             )
@@ -187,7 +192,7 @@ private fun EditTaskContentEmptyPreview() {
             EditTaskContent(
                 loading = false,
                 empty = true,
-                Task("Title", "Description", isCompleted = false),
+                TaskEntity(id = "id", "Title", "Description", isCompleted = false),
                 onTaskCheck = { },
                 onRefresh = { }
             )

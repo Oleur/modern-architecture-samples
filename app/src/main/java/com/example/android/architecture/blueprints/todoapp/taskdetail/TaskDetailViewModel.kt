@@ -24,6 +24,8 @@ import com.example.android.architecture.blueprints.todoapp.data.Result
 import com.example.android.architecture.blueprints.todoapp.data.Result.Success
 import com.example.android.architecture.blueprints.todoapp.data.Task
 import com.example.android.architecture.blueprints.todoapp.data.source.TasksRepository
+import com.example.android.architecture.blueprints.todoapp.domain.entity.TaskEntity
+import com.example.android.architecture.blueprints.todoapp.domain.usecase.GetTaskUseCase
 import com.example.android.architecture.blueprints.todoapp.util.Async
 import com.example.android.architecture.blueprints.todoapp.util.WhileUiSubscribed
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -40,7 +42,10 @@ import javax.inject.Inject
  * TODO: Define UiState for the Details screen.
  */
 data class TaskDetailUiState(
-    val task: Task? = null,
+    val task: TaskEntity? = null,
+    val userMessage: Int? = null,
+    val isLoading: Boolean = false,
+    val isTaskDeleted: Boolean = false,
 )
 
 /**
@@ -49,6 +54,7 @@ data class TaskDetailUiState(
 @HiltViewModel
 class TaskDetailViewModel @Inject constructor(
     private val tasksRepository: TasksRepository,
+    private val useCase: GetTaskUseCase,
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
@@ -57,14 +63,26 @@ class TaskDetailViewModel @Inject constructor(
     private val _userMessage: MutableStateFlow<Int?> = MutableStateFlow(null)
     private val _isLoading = MutableStateFlow(false)
     private val _isTaskDeleted = MutableStateFlow(false)
-    private val _taskAsync = tasksRepository.getTaskStream(taskId)
+    private val _taskAsync = useCase.getTaskStream(taskId)
         .map { handleResult(it) }
         .onStart { emit(Async.Loading) }
 
     val uiState: StateFlow<TaskDetailUiState> = combine(
         _userMessage, _isLoading, _isTaskDeleted, _taskAsync
     ) { userMessage, isLoading, isTaskDeleted, taskAsync ->
-        TODO("Handle success and loading for a dedicated task")
+        when(taskAsync) {
+            Async.Loading -> {
+                TaskDetailUiState(isLoading = true)
+            }
+            is Async.Success -> {
+                TaskDetailUiState(
+                    task = taskAsync.data,
+                    userMessage = userMessage,
+                    isLoading = isLoading,
+                    isTaskDeleted = isTaskDeleted,
+                )
+            }
+        }
     }
         .stateIn(
             scope = viewModelScope,
@@ -80,10 +98,10 @@ class TaskDetailViewModel @Inject constructor(
     fun setCompleted(completed: Boolean) = viewModelScope.launch {
         val task = uiState.value.task ?: return@launch
         if (completed) {
-            tasksRepository.completeTask(task)
+            tasksRepository.completeTask(task.id)
             showSnackbarMessage(R.string.task_marked_complete)
         } else {
-            tasksRepository.activateTask(task)
+            tasksRepository.activateTask(task.id)
             showSnackbarMessage(R.string.task_marked_active)
         }
     }
@@ -104,7 +122,7 @@ class TaskDetailViewModel @Inject constructor(
         _userMessage.value = message
     }
 
-    private fun handleResult(tasksResult: Result<Task>): Async<Task?> =
+    private fun handleResult(tasksResult: Result<TaskEntity>): Async<TaskEntity?> =
         if (tasksResult is Success) {
             Async.Success(tasksResult.data)
         } else {

@@ -41,7 +41,9 @@ class TasksLocalDataSource internal constructor(
     }
 
     override fun getTaskStream(taskId: String): Flow<Result<Task>> {
-        TODO("Implement me")
+        return tasksDao.observeTaskById(taskId).map {
+            Success(it)
+        }
     }
 
     override suspend fun refreshTask(taskId: String) {

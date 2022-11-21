@@ -24,6 +24,7 @@ import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import javax.inject.Inject
 
 /**
  * Default implementation of [TasksRepository]. Single entry point for managing tasks' data.
@@ -72,7 +73,7 @@ class DefaultTasksRepository(
     }
 
     override fun getTaskStream(taskId: String): Flow<Result<Task>> {
-        TODO("Implement me")
+        return tasksLocalDataSource.getTaskStream(taskId)
     }
 
     private suspend fun updateTaskFromRemoteDataSource(taskId: String) {
